@@ -1,6 +1,10 @@
 ---
 - name: modify /etc/hosts files
   hosts: all
+  remote_user: operation_admin
+  sudo: yes
+  sudo_user: root
+  
 
   tasks:
   - name: copy hosts.j2 template to server
