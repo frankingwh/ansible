@@ -6,6 +6,7 @@
   - name: copy hosts.j2 template to server
     template: src=hosts.j2 dest=/etc/hosts
     become: true
+    become_method: su
     become_user: root
 
 
