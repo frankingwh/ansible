@@ -1,8 +1,8 @@
 ---
 - name: modify /etc/hosts files
   hosts: all
-  remote_user: operation_admin
-  sudo: yes
+  #remote_user: operation_admin
+  #sudo: yes
   #sudo_user: root
   
 
