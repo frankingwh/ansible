@@ -3,7 +3,7 @@
   hosts: all
   remote_user: operation_admin
   sudo: yes
-  sudo_user: root
+  #sudo_user: root
   
 
   tasks:
