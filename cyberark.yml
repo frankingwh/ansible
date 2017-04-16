@@ -1,0 +1,31 @@
+---
+- hosts: all
+  vars:
+   - password_svcacc: "{{lookup('cyberarkpassword', AppID='app_ansible', Query='safe=CyberArk_Passwords;folder=root;object=AimSvcacc', Output='Password,PassProps.UserName,PassProps.Address,PasswordChangeInProcess')}}"
+   - password_root: "{{lookup('cyberarkpassword', AppID='app_ansible', Query='safe=CyberArk_Passwords;folder=root;object=AimRoot', Output='Password,PassProps.UserName,PassProps.Address,PasswordChangeInProcess')}}"
+   - password_usr1: "{{lookup('cyberarkpassword', AppID='app_ansible', Query='safe=CyberArk_Passwords;folder=root;object=AimUsr1', Output='Password,PassProps.UserName,PassProps.Address,PasswordChangeInProcess')}}"
+   - ansible_password: "{{password_svcacc.password}}"
+   - ansible_sudo_pass: "{{password_root.password}}"
+  remote_user: svcacc
+
+
+  tasks:
+   - name: Do something as sudo
+     #command: touch /tmp/test_sudo
+     file:
+       path: /tmp/test_sudo
+       state: touch
+     become: true
+
+   - name: Do something as service user - svcacc
+     #command: touch ~/test_user
+     file:
+       path: ~/test_user
+       state: touch
+
+
+   - debug: msg="the value of SVCACC password is {{password_svcacc.password}}  userName={{password_svcacc.passprops.username}} address={{password_svcacc.passprops.address}} passwordchangeinprocess={{password_svcacc.passwordchangeinprocess}} inventory_hostname={{inventory_hostname}} ansible_hostname={{ansible_hostname}}"
+
+   - debug: msg="the value of root password is {{password_root.password}}  userName={{password_root.passprops.username}} address={{password_root.passprops.address}} passwordchangeinprocess={{password_root.passwordchangeinprocess}} inventory_hostname={{inventory_hostname}} ansible_hostname={{ansible_hostname}}"
+
+   - debug: msg="the value of user1 password is {{password_usr1.password}}  userName={{password_usr1.passprops.username}} address={{password_usr1.passprops.address}} passwordchangeinprocess={{password_usr1.passwordchangeinprocess}} inventory_hostname={{inventory_hostname}} ansible_hostname={{ansible_hostname}}"
