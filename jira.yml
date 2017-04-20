@@ -2,6 +2,7 @@
 - name: query jira
   hosts: all
   remote_user: root
+  #These vars can be encrypted to another file using ansible vault
   vars:
     jira_username: admin
     jira_pass: redhat123
