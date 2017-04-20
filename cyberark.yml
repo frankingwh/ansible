@@ -1,5 +1,6 @@
 ---
 - hosts: all
+#These vars can be excrypted in another file using ansible vault
   vars:
    - password_svcacc: "{{lookup('cyberarkpassword', AppID='app_ansible', Query='safe=CyberArk_Passwords;folder=root;object=AimSvcacc', Output='Password,PassProps.UserName,PassProps.Address,PasswordChangeInProcess')}}"
    - password_root: "{{lookup('cyberarkpassword', AppID='app_ansible', Query='safe=CyberArk_Passwords;folder=root;object=AimRoot', Output='Password,PassProps.UserName,PassProps.Address,PasswordChangeInProcess')}}"
