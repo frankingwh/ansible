@@ -1,0 +1,31 @@
+---
+debuglog: true
+
+# For blacklist module section
+blacklistConfPath: "/etc/modprobe.d/50-blacklist.conf"
+blacklistModules:
+  - usb_storage
+  - sr_mod
+  - cdrom
+
+# For NTP section
+tzone: "Asia/Hong_Kong"
+ntpserver: "stdtime.gov.hk"
+
+# For route section
+route_dest: "192.168.10.0"
+subnet_mask: "255.255.255.0"
+gateway: "10.8.12.111"
+ifname: "eth0"
+
+# For DNS section
+dnsservers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# For service section
+svc_name: "bluetooth"
+svc_enable: "no"
+svc_state: "stopped"
+svc_mask: "yes"
+

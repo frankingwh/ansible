@@ -1,0 +1,11 @@
+config vdom
+edit {{ vdom }}
+
+config firewall vip
+edit {{ vipName }}
+set type static-nat
+set extip {{ vipExternal }}
+set extintf {{ vipInterface }}
+set mappedip {{ vipMappedIP }}
+next
+end

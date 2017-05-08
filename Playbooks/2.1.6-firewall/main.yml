@@ -1,0 +1,161 @@
+---
+
+- name: Play for Firewall
+  hosts: firewall
+  gather_facts: False
+  vars_files:
+    - vars/defaults.yml
+    
+  tasks:
+
+  #Vdom
+  - name: create command from template - createVdom
+    template:
+      src: createVdom.j2
+      dest: /tmp/createVdom.txt
+    delegate_to: localhost
+    
+  - name: show generated command
+    debug: msg="{{ lookup('file', '/tmp/createVdom.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/createVdom.txt') }}"
+    
+    #router static
+  - name: create command from - routerStatic
+    template:
+      src: routerStatic.j2
+      dest: /tmp/routerStatic.txt
+    delegate_to: localhost
+    
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/routerStatic.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/routerStatic.txt') }}"
+    
+    
+
+    #Interface
+#  - name: create command from template - createInterface
+#    template:
+#      src: createInterface.j2
+#      dest: /tmp/createInterface.txt
+#    delegate_to: localhost
+    
+#  - name: contents of generated file
+#    debug: msg="{{ lookup('file', '/tmp/createInterface.txt') }}"
+    
+#  - name: execute command
+#    raw: "{{ lookup('file', '/tmp/createInterface.txt') }}"
+    
+#  - name: remove generated file
+#    file: 
+#      path: /tmp/createInterface.txt
+#      state: absent
+#    delegate_to: localhost
+
+    #Object
+  - name: create command from template - createObject
+    template:
+      src: createObject.j2
+      dest: /tmp/createObject.txt
+    delegate_to: localhost
+      
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/createObject.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/createObject.txt') }}"
+    
+#  - name: remove generated file
+#    file: 
+#      path: /tmp/createObject.txt
+#      state: absent
+#    delegate_to: localhost
+    
+    #MIP
+  - name: create command from template - createMIP
+    template:
+      src: createMIP.j2
+      dest: /tmp/createMIP.txt
+    delegate_to: localhost
+      
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/createMIP.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/createMIP.txt') }}"
+    
+#  - name: remove generated file
+#    file: 
+#      path: /tmp/createMIP.txt
+#      state: absent
+#    delegate_to: localhost
+    
+    #VIP & NAT
+  - name: create command from template - createVIPandNAT
+    template:
+      src: createVIPandNAT.j2
+      dest: /tmp/createVIPandNAT.txt
+    delegate_to: localhost
+      
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/createVIPandNAT.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/createVIPandNAT.txt') }}"
+    
+#  - name: remove generated file
+#    file: 
+#      path: /tmp/createVIPandNAT.txt
+#      state: absent
+#    delegate_to: localhost   
+
+    #policy
+  - name: create command from template - setMultiplePolicy
+    template:
+      src: setMultiplePolicy.j2
+      dest: /tmp/setMultiplePolicy.txt
+    delegate_to: localhost
+      
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/setMultiplePolicy.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/setMultiplePolicy.txt') }}"
+    
+#  - name: remove generated file
+#    file: 
+#      path: /tmp/setPolicy.txt
+#      state: absent
+#    delegate_to: localhost       
+
+    #Muticast policy
+  - name: create command from template - multicastPolicy
+    template:
+      src: multicastPolicy.j2
+      dest: /tmp/multicastPolicy.txt
+    delegate_to: localhost
+    
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/multicastPolicy.txt') }}"
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/multicastPolicy.txt') }}"
+    
+   #fallback
+  - name: create command from template - fallback
+    template:
+      src: fallback.j2
+      dest: /tmp/fallback.txt
+    delegate_to: localhost
+    tags: fallback
+    
+  - name: contents of generated file
+    debug: msg="{{ lookup('file', '/tmp/fallback.txt') }}"
+    tags: fallback
+    
+  - name: execute command
+    raw: "{{ lookup('file', '/tmp/fallback.txt') }}"
+    tags: fallback

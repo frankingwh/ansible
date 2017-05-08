@@ -1,0 +1,116 @@
+---
+
+- name: Play for F5
+  hosts: localhost
+  connection: local
+  vars_files:
+    - vars/defaults.yml
+
+  tasks:
+
+    - pip:
+        name: bigsuds
+      delegate_to: localhost
+
+    - name: Create new node
+      bigip_node:
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+        password: "{{ bigip_password }}"
+        state: "present"
+        partition: "{{ bigip_partition }}"
+        host: "{{ node_host }}"
+        name: "{{ node_name }}"
+      tags: create
+
+    - name: Create Pool
+      bigip_pool:
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+        password: "{{ bigip_password }}"
+        state: "present"
+        name: "{{ pool_name }}"
+        partition: "{{ bigip_partition }}"
+        lb_method: "least_connection_member"
+        slow_ramp_time: 120
+      tags: create
+
+    - name: Add nodes to pool
+      bigip_pool_member:
+        description: "{{ memberDescription }}"
+        host: "{{ item.host }}"
+        name: "{{ item.name }}"
+        password: "{{ bigip_password }}"
+        pool: "{{ targetPool }}"
+        port: "{{ port }}"
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+      delegate_to: localhost
+      tags: create, add
+      with_items: "{{ nodes }}"
+
+    - name: Add virtual server
+      bigip_virtual_server:
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+        password: "{{ bigip_password }}"
+        state: present
+        partition: "{{ bigip_partition }}"
+        name: "{{ vsName }}"
+        destination: "{{ destination }}"
+        port: "{{ VSport }}"
+        pool: "{{ poolName }}"
+        snat: Automap
+        description: "{{ VSdescription }}"
+        all_profiles:
+          - http
+          - clientssl
+        enabled_vlans: "{{ VSVlans }}"
+      delegate_to: localhost
+      tags: create
+
+    - name: delete virtual server
+      bigip_virtual_server:
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+        password: "{{ bigip_password }}"
+        state: absent
+        partition: "{{ bigip_partition }}"
+        name: "{{ vsName }}"
+      delegate_to: localhost
+      tags: remove
+
+    - name: Remove nodes from pool
+      bigip_pool_member:
+        description: "webserver-1"
+        host: "{{ item.host }}"
+        name: "{{ item.name }}"
+        password: "{{ bigip_password }}"
+        pool: "{{ targetPool }}"
+        port: "{{ port }}"
+        state: absent
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+      delegate_to: localhost
+      tags: remove
+      with_items: "{{ nodes }}"
+
+    - name: Delete pool
+      bigip_pool:
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+        password: "{{ bigip_password }}"
+        state: "absent"
+        name: "{{ pool_name }}"
+        partition: "{{ bigip_partition }}"
+      tags: remove
+
+    - name: Remove node
+      bigip_node:
+        server: "{{ bigip_ip }}"
+        user: "{{ bigip_username }}"
+        password: "{{ bigip_password }}"
+        state: "absent"
+        partition: "{{ bigip_partition }}"
+        name: "{{ node_name }}"
+      tags: remove

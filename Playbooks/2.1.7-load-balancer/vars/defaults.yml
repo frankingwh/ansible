@@ -1,0 +1,33 @@
+---
+# Please put all general/default variables for the playbook in this file
+debuglog: false
+
+#Global
+bigip_ip: "10.0.2.209"
+bigip_username: "admin"
+bigip_password: "admin"
+bigip_partition: "Common"
+
+#Node
+node_host: "10.20.30.40"
+node_name: "10.20.30.40"
+
+#Pool
+pool_name: "my-pool"
+
+#Pool Memeber
+memberDescription: "webserver-1"
+targetPool: "my-pool"
+port: 80
+nodes:
+  - host: "10.20.30.40"
+    name: "10.20.30.40"
+
+#VS
+poolName: "my-pool"
+vsName: "my-server"
+destination: "10.20.30.44"
+VSport: 443
+VSdescription: "Test Virtual Server"
+VSVlans: 
+  - /Common/mtl

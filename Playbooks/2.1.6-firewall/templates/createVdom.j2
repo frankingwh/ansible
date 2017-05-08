@@ -1,0 +1,28 @@
+config system global
+set vdom-admin enable
+end
+
+config vdom
+edit {{ vdom }}
+
+config system settings
+set multicast-forward enable
+end
+
+
+config system interface
+edit {{ extInterfaceName }}
+set vdom {{ vdom }}	
+set ip {{ extInterfaceIP }}}
+set allowaccess ping https
+set interface {{ extInterfaceport }}
+set vlanid 172
+next
+edit {{ intInterfaceName }}
+set vdom {{ vdom }}
+set ip {{ intInterfaceIP }}
+set allowaccess ping https
+set interface {{ intInterfaceport }}
+set vlanid 10
+next
+end

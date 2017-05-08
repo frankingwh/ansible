@@ -1,0 +1,12 @@
+config vdom
+edit {{ vdom }}
+
+config firewall multicast-policy
+edit {{ mcpolicyId }}
+set srcaddr {{ mcpolicySrcaddr }}
+set srcintf {{ mcpolicySrcInterface }}
+set dstaddr {{ mcpolicyDstaddr }}
+set dstintf {{ mcpolicyDstInterface }}
+set action {{ mcpolicyAction }}
+next
+end

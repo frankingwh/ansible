@@ -1,0 +1,153 @@
+---
+
+- name: Play for Suse Linux 12 R1 configurations
+  hosts: SUSE
+  vars_files:
+    - vars/defaults.yml
+  
+  tasks:
+
+    # Disable the USB, and CD
+
+    - name: Ensure blacklist module appear in blacklist config file
+      blockinfile:
+        dest: "{{ blacklistConfPath }}"
+        block: |
+          blacklist {{ item }}
+        backup: yes
+        marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ item }}"
+        state: present
+        insertafter: EOF
+      with_items: "{{ blacklistModules }}"
+      tags: blacklist_modules
+
+    # System Clock Setting with NTP Update
+
+    - name: Set Timezone
+      timezone:
+        name: "{{ tzone }}"
+      tags: ntp
+
+    - name: Restart Crond as timezone changed
+      service:
+        name: cron
+        state: restarted
+      tags: ntp
+
+    - name: Install NTP
+      zypper:
+        name: ntp
+        state: present
+      tags: ntp
+
+    - name: Stop NTP
+      service:
+        name: ntpd
+        state: stopped
+      tags: ntp
+
+    - name: Sync Time from NTP Server
+      command: "ntpdate {{ ntpserver }}"
+      tags: ntp
+      ignore_errors: yes
+
+    - name: Add NTP Server to Conf
+      lineinfile:
+        dest: /etc/ntp.conf
+        line: "server {{ ntpserver }} prefer"
+        state: present
+        insertafter: "# server 127.127.8.0 mode 5 prefer"
+      tags: ntp
+
+    - name: Start NTP Service
+      service:
+        name: ntpd
+        state: started
+        enabled: yes
+      tags: ntp
+
+    - name: Set Hardware Clock to UTC
+      command: "hwclock --systohc --utc"
+      tags: ntp
+
+    - name: Add header to route file
+      lineinfile:
+        create: yes
+        dest: /etc/sysconfig/network/routes
+        state: present
+        line: "#Destination #Gateway #Netmask #iface"
+      tags: route
+
+    # Add/remove static route
+
+    - name: Add route to route file
+      lineinfile:
+        dest: /etc/sysconfig/network/routes
+        state: present
+        line: "{{ route_dest }} {{ gateway }} {{ subnet_mask }} {{ ifname }}"
+      notify: Reload network service
+      tags: route
+
+    # Auto align DNS setting base on hostname/site
+
+    - name: Configure DNS
+      lineinfile:
+        create: yes
+        dest: /etc/resolv.conf
+        state: present
+        line: "nameserver {{ item }}"
+      with_items: "{{ dnsservers }}"
+      tags: dns
+
+    # Managing the start/stop/enable/disable/mask state of systemd services
+
+    - name: Disable and Mask Service
+      systemd:
+        name: "{{ svc_name }}"
+        enabled: "{{ svc_enable }}"
+        state: "{{ svc_state }}"
+        masked: "{{ svc_mask }}"
+      tags: service
+
+    # Report installed packages
+    - name: Report installed packages
+      command: "zypper se --installed-only"
+      register: out
+    - debug: 
+        var: out
+      when: debuglog
+
+    # Report kernel modules in use and their versions
+
+    - name: Get kernel Modules
+      script: files/get_kernel_mod_report.sh
+      register: kernel_mod_out
+      tags: kernel
+
+    - debug:
+        var: kernel_mod_out.stdout_lines
+      when: debuglog
+
+    # Report kernel version
+
+    - name: Show Kernel Version
+      command: "uname -mrs"
+      register: kernel_ver_out
+      tags: kernel
+
+    - debug:
+        var: kernel_ver_out.stdout
+      when: debuglog
+
+  handlers:
+    - name: Reload network service
+      service:
+        name: network
+        state: reloaded
+
+
+
+
+
+
+    

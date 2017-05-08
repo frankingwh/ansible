@@ -1,0 +1,10 @@
+---
+
+- name: Play for XXXXX
+  hosts: WINDOWS
+  vars_files:
+    - vars/defaults.yml
+
+  tasks:
+    - name: test connection
+      ping: 

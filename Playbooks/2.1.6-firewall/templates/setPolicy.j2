@@ -1,0 +1,16 @@
+config vdom
+edit {{ vdom }}
+
+config firewall policy
+edit {{ PolicyId }}
+set name {{ PolicyName }}
+set srcintf {{ PolicySrcPort }}
+set dstintf {{ PolicyDstPort }}
+set srcaddr {{ PolicySrcAddress }}
+set dstaddr {{ PolicyDstAddress }}
+set action {{ PolicyAction }}
+set schedule {{ PolicySchedule }}
+set service {{ PolicyService }}
+set nat {{ PolicyNat }}
+set comments {{ PolicyComment }}
+end

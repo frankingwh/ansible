@@ -1,0 +1,17 @@
+---
+
+- name: Play for MS SQL Server 2016 Standalone Deployment
+  hosts: WINDOWS
+  vars_files:
+    - vars/defaults.yml
+
+  tasks:
+    - name: Copy Powershell Script to C Drive
+      win_copy:
+        src: files/PsExec.exe
+        dest: C:/psscript/PsExec.exe
+    - win_psexec:
+        command: 'Z:\SD2203\SQL2016_Enterprise_x64\setup.exe /q /ACTION=Install /FEATURES=SQLEngine,CONN /SAPWD="P@ssword" /SQLSVCPASSWORD="0000abc!" /INSTANCENAME=MSSQLSERVER /SQLSVCACCOUNT="administrator" /SQLSYSADMINACCOUNTS="administrator" /AGTSVCACCOUNT="NT AUTHORITY\Network Service" /TCPENABLED=1 /IACCEPTSQLSERVERLICENSETERMS /IACCEPTROPENLICENSETERMS /SECURITYMODE=SQL /UPDATEENABLED="False"'
+        executable: C:\psscript\PsExec.exe
+        system: yes
+        wait: false

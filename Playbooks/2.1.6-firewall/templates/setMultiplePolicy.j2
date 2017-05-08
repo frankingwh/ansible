@@ -1,0 +1,23 @@
+config vdom
+edit {{ vdom }}
+
+{% for policy in policies %}
+config firewall policy
+edit {{ policy.id }}
+set name {{ policy.name }}
+set srcintf {{ policy.srcport }}
+set dstintf {{ policy.dstport }}
+set srcaddr {{ policy.srcAddr }}
+set dstaddr {{ policy.dstAddr }}
+set action {{ policy.action }}
+set schedule {{ policy.schedule }}
+set service {{ policy.service }}
+{% if policy.nat == 'enable' %}
+set nat {{ policy.nat }}
+{% endif %}
+set comment "{{ policy.comment }}"
+next
+end
+
+{% endfor %}
+end

@@ -1,0 +1,146 @@
+---
+
+- name: Play for Windows Server 2012 R2 Configurations
+  hosts: WINDOWS
+  vars_files:
+    - vars/defaults.yml
+
+  tasks:
+  
+  - name: Copy Powershell Script to C Drive
+    win_copy:
+      src: files/script
+      dest: "{{ win_psscript_loc }}"
+      remote_src: false
+
+  # Retrieve the info of the windows registry
+  - name: Query Registry value Using win_reg_stat module
+    win_reg_stat:
+      path: "{{ reg_query_path }}"
+      name: "{{ reg_query_name }}"
+    register: out
+    
+  - debug: var=out
+    when: debuglog
+
+  - name: Query existing value of registry using powershell script
+    win_shell: C:/psscript/script/regedit_info.ps1 -path HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -key EnableLUA
+    register: out
+
+  - debug: var=out
+    when: debuglog
+
+  # Check/change etc\hosts entries
+  - name: Add a new line to the end of Host Table
+    win_lineinfile: 
+      path: C:\Windows\System32\drivers\etc\hosts
+      line: "{{ host_table_string }}"
+    tags: dns
+
+  - name: Query existing hosts table
+    win_shell: get-content C:\Windows\System32\drivers\etc\hosts
+    register: out
+
+  - debug: var=out
+    when: debuglog
+  
+  # Add/remove static route
+  - name: Add static route
+    win_shell: C:/psscript/script/route_add.ps1 -Destination "{{ route_dest }}" -NextHop "{{ route_nexthop }}"
+    tags: route
+
+  # Change NIC setting
+  - name: Change Duplex mode on ethernet interface
+    win_shell: C:/psscript/script/NIC_set.ps1 -RegistryKeyword "*SpeedDuplex" -Registryvalue "{{ nic_duplex }}" 
+    async: 60
+    poll: 30
+    tags: nic
+
+  # Auto align DNS setting based on hostname/site
+  - name: Set DNS Server for all network adapters
+    win_dns_client:
+      adapter_names: "*"
+      ipv4_addresses: "{{ dns_servers }}"
+      log_path: c:\psscript\set_dns.log
+    #with_items: "{{ dns_servers }}"
+    tags: dns
+
+  # Change IE setting 
+  - name: Using win_regedit module to SET IE HomePage
+    win_regedit:
+      key: "{{ ie_reg_key }}"
+      value: "{{ ie_reg_value }}"
+      data: "{{ ie_reg_data }}"
+      datatype: string
+    tags: iesetting
+
+  - name: Remove IE HomePage Cache
+    win_regedit:
+      key: "{{ ie_reg_key }}"
+      value: IEHomePage_Cache
+      data: "{{ ie_reg_cache }}"
+      datatype: string
+    tags: iesetting
+  
+  # Disable windows firewall
+  - name: Stop Firewall
+    win_shell: C:/psscript/script/firewall.ps1 -Action "{{ fw_action }}" -Profile "{{ item }}"
+    with_items: "{{ fw_profile }}"
+    tags: firewall
+
+  # Set pagefile and memory dump
+  - name: Change the Page file to Manual setting
+    win_shell: C:/psscript/script/pagefile.ps1 -AutoManage false -MinSize 1024 -MaxSize 2048
+    tags: memory
+
+  - name: Change the Memory Dump to Manual setting
+    win_shell: C:/psscript/script/memorydump.ps1 -DebugInfoType 2 -AutoReboot false
+    tags: memory
+
+  # Apply security template file
+  - name: Copy the security template to the folder
+    win_copy:
+      src: files/sectemplate.ini
+      dest: C:/psscript/sectemplate.ini
+    tags: security
+
+  - name: Apply Security Template to the windows.
+    win_shell: "C:/psscript/script/security_template.ps1 sectemplate.ini" 
+    tags: security
+
+  # Disable/enable UAC
+  - name: Disable UAC
+    win_regedit:
+      key: "{{ reg_path }}"
+      value: "{{ reg_key }}"
+      data: "{{ reg_key_value }}"
+      datatype: "{{ data_type }}"
+    tags: uac
+
+  # Set time zone & locale
+  - name: Set the time zone to HK
+    win_timezone:
+      timezone: "{{ timezone }}"
+    tags: locale
+
+  - name: Set System Locale
+    win_shell: C:/psscript/script/system_locale.ps1 -CultureInfo zh-CN
+    tags: locale
+
+  # Enable/disable remote desktop
+  - name: Enable RDP and grant user to access
+    win_shell: C:/psscript/script/RDP.ps1 -Action Enable
+    tags: rdp
+
+  # Create/delete/modify local group & user
+  - name: Create new user account with username testuser and password 
+    win_shell: C:/psscript/script/local_user_old.ps1 -Action new -Username "{{ accname }}" -Password "{{ accpwd }}"
+    tags: account
+
+  - name: Create new group called Testing Group
+    win_shell: C:/psscript/script/local_group_old.ps1 -Action new -Groupname "{{ grpname }}"
+    tags: account
+
+  - name: Add testuser into the local group Testing
+    win_shell: C:/psscript/script/local_group_old.ps1 -Action modify -Username "{{ accname }}" -Groupname "{{ grpname }}"
+    tags: account

@@ -1,0 +1,8 @@
+config vdom
+edit {{ vdom }}
+
+config firewall address
+edit {{ objectName }}
+set subnet {{ addressMask }}
+set allow-routing enable
+end

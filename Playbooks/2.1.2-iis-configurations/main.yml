@@ -1,0 +1,81 @@
+---
+
+- name: Play for IIS Configuration
+  hosts: WINDOWS
+  vars_files:
+    - vars/defaults.yml
+
+  tasks:
+    - name: Create physical path for virtual host
+      win_file:
+        path: "{{ iis_site_path }}"
+        state: directory
+      tags: virthost
+
+    - name: Create a new application pool in 'Started' state
+      win_iis_webapppool:
+        name: "{{ iis_site_apppool}}"
+        state: "{{ iis_site_state }}"
+      tags: virthost
+    
+    - name: Create a virtual host
+      win_iis_website:
+        name: "{{ iis_site_name }}"
+        state: started
+        port: "{{ iis_site_port }}"
+        ip: "{{ iis_site_ip }}"
+        hostname: "{{ iis_site_hostname }}"
+        application_pool: "{{ iis_site_apppool }}"
+        physical_path: "{{ iis_site_path }}"
+      tags: virthost
+
+    - name: Change Listening port of "{{ iis_site_name }}" by removing orignal port bind
+      win_iis_webbinding:
+        name: "{{ iis_site_name }}"
+        port: "{{ iis_orig_port }}"
+        state: absent
+      tags: portbind
+
+    - name: Add Listening port to "{{ iis_site_name }}"
+      win_iis_webbinding:
+        name: "{{ iis_site_name }}"
+        port: "{{ iis_new_port }}"
+        ip: "{{ iis_new_bind_ip }}"
+        state: present
+      tags: portbind
+
+    - name: Create new physical path for virtual host
+      win_file:
+        path: "{{ iis_new_site_path }}"
+        state: directory
+      tags: pathchange
+
+    - name: Update physical path for virtual host
+      win_iis_website:
+        name: "{{ iis_site_name }}"
+        physical_path: "{{ iis_new_site_path }}"
+        state: restarted
+      tags: pathchange
+
+    - name: Change Authentication type
+      win_shell: C:\psscript\script\iis_auth_set.ps1 -Auth "{{ iis_auth_type }}" -value "{{ iis_auth_state }}" -location "{{ iis_auth_site }}"
+      tags: auth
+
+    - name: Copy certificate to the server
+      win_copy:
+        src: files/private_cert.pfx
+        dest: C:/psscript/private_cert.pfx
+      tags: cert
+
+    - name: Add Certificate to IIS Server
+      win_shell: C:/psscript/script/import_cert.ps1 -certPath "C:\\psscript\\private_cert.pfx" -pfxPass Testing
+      tags: cert
+    
+    - name: Change protocol to HTTPS and with imported certificate
+      win_iis_webbinding:
+        name: "{{ iis_site_name }}"
+        port: "{{ iis_proto_port }}"
+        protocol: "{{ iis_proto }}"
+        certificate_hash: 5BD0A3087FDFFE9D4DD2E03F6737095079423D18
+        state: present
+      tags: certbind

@@ -1,0 +1,4 @@
+interface: "Gi0/1"
+vlanid: "100"
+vlan_description: "TestVLAN"
+port_channel_id: "1"

@@ -1,0 +1,3 @@
+---
+# Please put all general/default variables for the playbook in this file
+debuglog: false

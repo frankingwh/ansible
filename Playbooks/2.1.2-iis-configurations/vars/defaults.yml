@@ -1,0 +1,24 @@
+---
+# Please put all general/default variables for the playbook in this file
+debuglog: false
+
+iis_site_name: "New Web Site"
+iis_site_path: "C:\\inetpub\\newwebsite"
+iis_site_port: "8080"
+iis_site_ip: "127.0.0.1"
+iis_site_hostname: "newwebsite.local"
+iis_site_apppool: "NewWebsiteApp"
+iis_site_state: "started"
+
+iis_orig_port: "9090"
+iis_new_port: "80"
+iis_new_bind_ip: "192.168.0.10"
+
+iis_new_site_path: "c:\\inetpub\\newpath"
+
+iis_auth_site: "New Web Site"
+iis_auth_type: "anonymousAuthentication"
+iis_auth_state: "true"
+
+iis_proto: "HTTPS"
+iis_proto_port: "443"

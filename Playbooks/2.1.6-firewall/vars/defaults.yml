@@ -1,0 +1,58 @@
+---
+# Please put all general/default variables for the playbook in this file
+debuglog: false
+
+#interface
+vdom: "root"
+extInterfaceIP: "172.16.4.1/24"
+extInterfaceName: "ext-v4"
+extInterfaceport: "port2"
+intInterfaceIP: "10.0.0.1/24"
+intInterfaceName: "int-v4"
+intInterfaceport: "port3"
+
+#Create Object
+objectName: "Subnet_10.0.0.0/24"
+addressMask: "10.0.0.0 255.255.255.0"
+
+#MIP
+MIPName: "MIP_224.1.1.0/24"
+startIP: "224.1.1.0"
+endIP: "224.1.1.255"
+
+#VIP
+vipName: "vip_172.16.4.0_10.0.0.0"
+vipExternal: "172.16.4.2-172.16.4.254"
+vipInterface: "ext-v4"
+vipMappedIP: "10.0.0.2-10.0.0.254"
+
+#policy
+PolicyId: "1"
+PolicyName: "Allow_root_outbound"
+PolicySrcPort: "int-v4"
+PolicyDstPort: "ext-v4"
+PolicySrcAddress: "all"
+PolicyDstAddress: "all"
+PolicyAction: "accept"
+PolicySchedule: "always"
+PolicyService: "ALL"
+PolicyNat: "enable"
+PolicyComment: "Comment"
+
+#route
+routeId: "1"
+routeDst: "0.0.0.0/0"
+routeGateway: "172.16.0.200"
+routeDevice: "ext-v4"
+
+#Muticast policy
+mcpolicyId: "1"
+mcpolicySrcaddr: "Subnet_10.0.0.0/24"
+mcpolicySrcInterface: "int-v4"
+mcpolicyDstaddr: "MIP_224.1.1.0/24"
+mcpolicyDstInterface: "ext-v4"
+mcpolicyAction: "accept"
+
+policies:
+    - { id: 1, name: "Allow_root_outbound", srcport: "int-v4", dstport: "ext-v4", srcAddr: "all", dstAddr: "all", action: "accept", schedule: "always", service: "ALL", nat: "enable", comment: "comment" }
+    - { id: 2, name: "Allow_root_inbound", srcport: "ext-v4", dstport: "int-v4", srcAddr: "all", dstAddr: "vip_172.16.4.0_10.0.0.0", action: "deny", schedule: "always", service: "ALL", nat: "disable", comment: "Used to activate static Source NAT 1-to-1" }

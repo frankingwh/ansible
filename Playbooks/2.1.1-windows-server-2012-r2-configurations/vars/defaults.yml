@@ -1,0 +1,44 @@
+---
+# Please put all general/default variables for the playbook in this file
+debuglog: false
+
+reg_query_path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\policies\\system"
+reg_query_name: "EnableLUA"
+
+win_psscript_loc: "C:/psscript"
+
+host_table_string: "10.10.0.10    vmware-localhost"
+
+route_dest: "10.10.0.0/24"
+route_nexthop: "192.168.0.1"
+
+nic_duplex: "4"
+
+dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+
+ie_reg_key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+ie_reg_value: "IEHomePage"
+ie_reg_data: REG ADD "HKCU\SOFTWARE\MICROSOFT\INTERNET EXPLORER\MAIN" /V "Start Page" /D "www.yahoo.com" /F
+ie_reg_cache: REG ADD "HKCU\SOFTWARE\MICROSOFT\INTERNET EXPLORER\MAIN" /V "Start Page Redirect Cache" /D "http://www.yahoo.com/" /F
+
+fw_action: "off"
+fw_profile:
+  - privateprofile
+  - domainprofile
+  - publicprofile
+
+
+reg_path: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\policies\\system"
+reg_key: "EnableLUA"
+reg_key_value: "0"
+data_type: "dword"
+
+timezone: "GMT Standard Time"
+
+
+accname: "testuser"
+accpwd: "T@esting0"
+grpname: "TestGroup"

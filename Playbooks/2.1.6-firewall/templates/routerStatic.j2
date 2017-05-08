@@ -1,0 +1,10 @@
+config vdom
+edit {{ vdom }}
+
+config router static
+edit {{ routeId }}
+set dst {{ routeDst }}
+set gateway {{ routeGateway }}
+set device {{ routeDevice }}
+next
+end

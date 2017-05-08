@@ -1,0 +1,38 @@
+config vdom
+edit {{ vdom }}
+
+config firewall multicast-policy
+delete {{ mcpolicyId }}
+end
+
+config firewall address
+delete {{ objectName }}
+end
+
+config firewall multicast-address
+delete {{ MIPName }}
+end
+
+config firewall policy
+{% for policy in policies %}
+delete {{ policy.id }}
+{% endfor %}
+end
+
+config system interface
+delete {{ extInterfaceName }}
+delete {{ intInterfaceName }}
+end
+
+config firewall vip
+delete {{ vipName }}
+end
+
+config router static
+delete {{ routeId }}
+end
+end
+
+config vdom
+delete {{ vdom }}
+end

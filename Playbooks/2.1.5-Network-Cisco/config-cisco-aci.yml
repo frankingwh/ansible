@@ -1,0 +1,24 @@
+---
+
+- name: playbook for aci testing
+  hosts: apic
+  connection: local
+  gather_facts: no
+
+  vars:
+    filter1:
+      - arp
+
+  tasks:
+    - name: Create tenant 
+      aci_tenant: name=customer_1 descr='tenant by Ansible - Lewis' state=present host={{ inventory_hostname }} username={{ user }} password={{ pass }}
+
+    - name: Create context for tenant(private network)
+      aci_context: name=c1_priv_network descr='customer 1 VRF' tenant=customer_1 state=present host={{ inventory_hostname }} username={{ user }} password={{ pass }}
+
+    - name: Create bridge domain
+      aci_bridge_domain: name=c1bd1 context=c1_priv_network subnet=10.1.100.1/24 descr='web servers' tenant=customer_1 state=present host={{ inventory_hostname }} username={{ user }} password={{ pass }}
+
+    - name: Create contract 
+      aci_contract: name=web-contract descr='web contracy by ansible' tenant=customer_1 state=present host={{ inventory_hostname }} username={{ user }} password={{ pass }}
+

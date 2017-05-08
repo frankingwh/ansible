@@ -1,0 +1,108 @@
+---
+- hosts: all
+  gather_facts: yes
+  connection: local
+  
+  vars:
+    cli:
+      host: "{{ inventory_hostname }}" 
+      username: "{{ creds['username'] }}"
+      password: "{{ creds['password'] }}"
+      auth_pass: "{{ creds['auth_pass'] }}"
+
+  tasks:
+  - name: obtain cred
+    include_vars: secrets.yml
+    tags: always
+
+  - name: run show interface config
+    ios_command:
+      commands: show run int {{ interface }}
+      authorize: yes
+      provider: "{{ cli }}"
+    register: origconfig
+    tags: showconfig
+
+  - debug: var=origconfig.stdout_lines
+    tags: showconfig
+
+  - name: check vlan exist
+    ios_command:
+      commands: show vlan id {{ vlanid }}
+      authorize: yes
+      provider: "{{ cli }}"
+    register: out
+    ignore_errors: yes
+    tags: vlan
+
+  - debug: var=out.failed 
+    tags: vlan
+
+  - name: create vlan
+    ios_config:
+      lines: 
+      - vlan {{ vlanid }}
+      authorize: yes
+      after: name {{ vlan_description }}
+      provider: "{{ cli }}"
+    when: out.failed is defined and out.failed==true
+    register: createvlan
+    tags: vlan
+
+  - name: Configure switchport
+    ios_config:
+      lines:
+        - description Interface configured by ansible
+        - switchport mode access
+        - switchport access vlan {{ vlanid }}
+        - channel-group {{ port_channel_id }} mode active
+      parents: interface {{ interface }}
+      before: default interface {{ interface }}
+      after: no shutdown
+      match: exact
+      replace: block
+      authorize: yes
+      provider: "{{ cli }}"
+    tags: swport
+
+  - name: Show updated switchport config
+    ios_command:
+      commands: show run int {{ interface }}
+      authorize: yes
+      provider: "{{ cli }}"
+    register: portconfig
+    tags: showconfig
+
+  - debug: var=portconfig
+    tags: showconfig
+
+  - name: Configure port channel
+    ios_config:
+      lines:
+        - description Test Port Channel
+        - switchport mode trunk
+      parents: interface port-channel {{ port_channel_id }}
+      authorize: yes
+      provider: "{{ cli }}"
+    tags: pc
+
+  - name: Show Port Channel config
+    ios_command:
+      commands: show run int port-channel {{ port_channel_id }}
+      authorize: yes
+      provider: "{{ cli }}"
+    register: pcconfig
+    tags: showconfig
+
+  - debug: var=pcconfig
+    tags: showconfig
+
+  - name: Enable switchport
+    ios_config:
+      lines:
+        - shut
+        - no shut
+      parents: interface {{ interface }}
+      authorize: yes
+      provider: "{{ cli }}"
+    tags: swport
