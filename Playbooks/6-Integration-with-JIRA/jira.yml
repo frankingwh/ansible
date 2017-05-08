@@ -1,0 +1,90 @@
+---
+- name: query jira
+  hosts: all
+  remote_user: root
+  #These vars can be encrypted to another file using ansible vault
+  vars:
+    jira_username: admin
+    jira_pass: redhat123
+    jira_project: frankie
+
+  tasks:
+  - name: query an issue
+    jira:
+      uri: https://frankingwh.atlassian.net/
+      username: "{{ jira_username }}"
+      password: "{{ jira_pass }}"
+      project: "{{ jira_project }}"
+      operation: fetch
+      issue: "{{ issue_key }}"
+    register: issueout
+    tags: [assign,comment]
+  - debug: msg="The issue key is {{ issueout.meta.key }}, the Ansible Tower job id is {{ tower_job_id }}"
+  - debug: msg="The issue creator name is {{ issueout.meta.fields.creator.name }}"
+
+#add jira comment
+  - name: Comment on issue
+    jira:
+      uri: https://frankingwh.atlassian.net/
+      username: "{{ jira_username }}"
+      password: "{{ jira_pass }}"
+      issue: '{{ issueout.meta.key }}'
+      operation: comment
+      comment: AnsibleTower is now gathering basic server information. The Ansible Job ID is {{ tower_job_id }}. ---comment added by Ansible
+    tags: comment
+  - debug: msg="Add a comment to issue {{ issueout.meta.key }}"
+
+#basic troubleshoot
+  - name: Gather server info and generate report
+    #any task here
+    command: cat /etc/motd
+    register: mymotd
+  - debug: msg="generate basic troubleshooting report and send to admin"
+
+#assign admin to own this issue
+  - name: assign assignee
+    jira:
+      uri: https://frankingwh.atlassian.net/
+      username: "{{ jira_username }}"
+      password: "{{ jira_pass }}"
+      issue: '{{ issueout.meta.key }}'
+      operation: edit
+      assignee: admin
+    tags: assign
+  - debug: msg="Assign issue {{ issueout.meta.key }} to admin"
+
+#add jira comment for assignee
+  - name: Comment on issue - assign case owner
+    jira:
+      uri: https://frankingwh.atlassian.net/
+      username: "{{ jira_username }}"
+      password: "{{ jira_pass }}"
+      issue: '{{ issueout.meta.key }}'
+      operation: comment
+      comment: This issue is assigned to admin. Please contact admin@localdomain for troubleshoot report. ---comment added by Ansible
+    tags: comment
+  - debug: msg="Add case owner comment"
+
+
+#change ticket status to Done
+  - name: Close the issue
+    jira:
+      uri: https://frankingwh.atlassian.net/
+      username: "{{ jira_username }}"
+      password: "{{ jira_pass }}"
+      issue: '{{ issueout.meta.key }}'
+      operation: transition
+      status: Done
+  - debug: msg="Change the issue status to Done"
+
+#add jira comment for status changed
+  - name: Comment on issue - status changed
+    jira:
+      uri: https://frankingwh.atlassian.net/
+      username: "{{ jira_username }}"
+      password: "{{ jira_pass }}"
+      issue: '{{ issueout.meta.key }}'
+      operation: comment
+      comment: The status change to Done. ---comment added by Ansible
+    tags: comment
+  - debug: msg="Add change status comment"
