@@ -1,0 +1,37 @@
+---
+
+- name: kernel side-channel attacks patching
+  hosts: localhost
+  remote_user: root
+
+#Kernel Side-Channel Attacks - CVE-2017-5754 CVE-2017-5753 CVE-2017-5715
+#https://access.redhat.com/security/vulnerabilities/speculativeexecution
+#created by: Frankie Ng, wang@redhat.com, 11 Jan 2018
+
+  tasks:
+
+#
+#This script determines if your system is vulnerable and it could be downloaded from Red Hat Customer portal, https://access.redhat.com/security/vulnerabilities/speculativeexecution
+#
+    - name: copy the detection script
+      copy:
+        src: roles/common/files/spectre-meltdown--f79986c.sh
+        dest: /tmp/spectre-meltdown--f79986c.sh
+        owner: root
+        group: root
+        mode: 755
+
+    - name: run the detection script
+      shell: /tmp/spectre-meltdown--f79986c.sh > /tmp/spectre-meltdown_result.txt
+      ignore_errors: yes
+      register: command_output
+
+    - debug: msg="{{command_output.stdout}}"
+
+    - name: install patch for RHEL 7
+      command: yum update --advisory=RHSA-2018:0007 -y
+      when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
+
+    - name: install patch for RHEL 6
+      command: yum update --advisory=RHSA-2018:0008 -y
+      when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '6'
